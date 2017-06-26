@@ -21,9 +21,8 @@ package org.apache.tinkerpop.gremlin.structure.util.deflated;
 
 import org.apache.tinkerpop.gremlin.AbstractGremlinTest;
 import org.apache.tinkerpop.gremlin.FeatureRequirementSet;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedFactory;
-import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedVertex;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -42,6 +41,40 @@ import static org.junit.Assert.fail;
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
 public class DeflatedVertexTest extends AbstractGremlinTest {
+
+    @Test
+    @FeatureRequirementSet(FeatureRequirementSet.Package.VERTICES_ONLY)
+    public void shouldIterateEdgesOnDeflate() {
+        final Vertex v1 = graph.addVertex("name", "daniel", "state", "happy");
+        final Vertex v2 = graph.addVertex("name", "marko", "state", "stoked");
+        v1.addEdge("knows", v2, "weight", 1.0, "time", "always");
+        v1.addEdge("likes", v2);
+        v2.addEdge("knows", v1);
+
+        // NO EDGES
+        Vertex deflated = DeflatedFactory.detach(v1, new HashMap<String, Set<String>>() {{
+            put("properties", new HashSet<>(Arrays.asList("name", "state")));
+        }});
+        assertTrue(deflated.properties().hasNext());
+        assertFalse(deflated.edges(Direction.OUT).hasNext());
+        assertFalse(deflated.edges(Direction.IN).hasNext());
+        assertFalse(deflated.edges(Direction.BOTH).hasNext());
+        // SOME EDGES
+        deflated = DeflatedFactory.detach(v1, new HashMap<String, Set<String>>() {{
+            put("properties", new HashSet<>(Arrays.asList("name", "state", "weight")));
+            put("outE", Collections.singleton("knows"));
+        }});
+        assertTrue(deflated.properties().hasNext());
+        assertTrue(deflated.edges(Direction.OUT).hasNext());
+        assertTrue(deflated.edges(Direction.OUT, "knows").hasNext());
+        assertFalse(deflated.edges(Direction.OUT, "likes").hasNext());
+        assertFalse(deflated.edges(Direction.IN).hasNext());
+        assertFalse(deflated.edges(Direction.IN, "knows").hasNext());
+        assertFalse(deflated.edges(Direction.IN, "likes").hasNext());
+        assertFalse(deflated.edges(Direction.BOTH, "likes").hasNext());
+        assertEquals(1.0d, deflated.edges(Direction.OUT, "knows").next().value("weight"), 0.01d);
+        assertFalse(deflated.edges(Direction.OUT, "knows").next().property("time").isPresent());
+    }
 
     @Test
     @FeatureRequirementSet(FeatureRequirementSet.Package.VERTICES_ONLY)
@@ -89,7 +122,7 @@ public class DeflatedVertexTest extends AbstractGremlinTest {
     @Test
     @FeatureRequirementSet(FeatureRequirementSet.Package.VERTICES_ONLY)
     public void shouldHashAndEqualCorrectly() {
-        final Vertex v = graph.addVertex("name","blah");
+        final Vertex v = graph.addVertex("name", "blah");
         final Set<Vertex> set = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             set.add(DeflatedFactory.detach(v, Collections.emptyMap()));

@@ -144,20 +144,19 @@ public class DeflatedVertex extends DeflatedElement<Vertex> implements Vertex {
             if (null == this.outEdges || this.outEdges.isEmpty())
                 return Collections.emptyIterator();
             else
-                return Stream.of(edgeLabels).map(label -> this.outEdges.get(label)).flatMap(List::stream).iterator();
+                return edgeLabels.length == 0 ?
+                        this.outEdges.values().stream().flatMap(List::stream).iterator() :
+                        Stream.of(edgeLabels).map(label -> this.outEdges.getOrDefault(label, Collections.emptyList())).flatMap(List::stream).iterator();
+
         } else if (direction.equals(Direction.IN)) {
-            if (null == this.outEdges || this.outEdges.isEmpty())
+            if (null == this.inEdges || this.inEdges.isEmpty())
                 return Collections.emptyIterator();
             else
-                return Stream.of(edgeLabels).map(label -> this.inEdges.get(label)).flatMap(List::stream).iterator();
-        } else {
-            if ((null == this.outEdges || this.outEdges.isEmpty()) && (null == this.inEdges || this.inEdges.isEmpty()))
-                return Collections.emptyIterator();
-            else
-                return Stream.concat(
-                        Stream.of(edgeLabels).map(label -> this.outEdges.get(label)).flatMap(List::stream),
-                        Stream.of(edgeLabels).map(label -> this.outEdges.get(label)).flatMap(List::stream)).iterator();
-        }
+                return edgeLabels.length == 0 ?
+                        this.inEdges.values().stream().flatMap(List::stream).iterator() :
+                        Stream.of(edgeLabels).map(label -> this.inEdges.getOrDefault(label, Collections.emptyList())).flatMap(List::stream).iterator();
+        } else
+            return IteratorUtils.concat(this.edges(Direction.OUT, edgeLabels), this.edges(Direction.IN, edgeLabels));
     }
 
     @Override
