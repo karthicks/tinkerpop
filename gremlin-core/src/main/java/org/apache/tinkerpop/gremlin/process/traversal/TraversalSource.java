@@ -24,6 +24,7 @@ import org.apache.tinkerpop.gremlin.process.computer.Computer;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.computer.traversal.strategy.decoration.VertexProgramStrategy;
 import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.HaltedTraverserStrategy;
 import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.SackStrategy;
 import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.SideEffectStrategy;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -31,7 +32,9 @@ import org.apache.tinkerpop.gremlin.util.function.ConstantSupplier;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -92,6 +95,7 @@ public interface TraversalSource extends Cloneable, AutoCloseable {
         public static final String withComputer = "withComputer";
         public static final String withSideEffect = "withSideEffect";
         public static final String withRemote = "withRemote";
+        public static final String withDetachment = "withDetachment";
     }
 
     /////////////////////////////
@@ -171,6 +175,10 @@ public interface TraversalSource extends Cloneable, AutoCloseable {
      */
     public default TraversalSource withComputer() {
         return this.withStrategies(new VertexProgramStrategy(Computer.compute()));
+    }
+
+    public default TraversalSource withDetachment(final Map<String, Set<String>> detachment) {
+        return this.withStrategies(HaltedTraverserStrategy.detached());
     }
 
     /**

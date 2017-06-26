@@ -30,6 +30,7 @@ import org.apache.tinkerpop.gremlin.structure.util.reference.ReferenceFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
@@ -38,8 +39,17 @@ public final class HaltedTraverserStrategy extends AbstractTraversalStrategy<Tra
 
     private final Class haltedTraverserFactory;
     private final boolean useReference;
+    private final Map<String, Set<String>> deflate;
+
+    private HaltedTraverserStrategy(final Map<String, Set<String>> deflate) {
+        this.haltedTraverserFactory = null;
+        this.useReference = false;
+        this.deflate = deflate;
+
+    }
 
     private HaltedTraverserStrategy(final Class haltedTraverserFactory) {
+        this.deflate = null;
         if (haltedTraverserFactory.equals(DetachedFactory.class) || haltedTraverserFactory.equals(ReferenceFactory.class)) {
             this.haltedTraverserFactory = haltedTraverserFactory;
             this.useReference = ReferenceFactory.class.equals(this.haltedTraverserFactory);
@@ -89,6 +99,10 @@ public final class HaltedTraverserStrategy extends AbstractTraversalStrategy<Tra
 
     public static HaltedTraverserStrategy reference() {
         return new HaltedTraverserStrategy(ReferenceFactory.class);
+    }
+
+    public static HaltedTraverserStrategy deflated(final Map<String, Set<String>> deflate) {
+        return new HaltedTraverserStrategy(deflate);
     }
 
 }
