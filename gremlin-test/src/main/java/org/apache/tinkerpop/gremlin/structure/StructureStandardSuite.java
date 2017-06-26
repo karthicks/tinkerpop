@@ -29,6 +29,7 @@ import org.apache.tinkerpop.gremlin.structure.io.IoGraphTest;
 import org.apache.tinkerpop.gremlin.structure.io.IoTest;
 import org.apache.tinkerpop.gremlin.structure.io.IoPropertyTest;
 import org.apache.tinkerpop.gremlin.structure.io.IoVertexTest;
+import org.apache.tinkerpop.gremlin.structure.util.deflated.DeflatedVertexTest;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedEdgeTest;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedGraphTest;
 import org.apache.tinkerpop.gremlin.structure.util.detached.DetachedPropertyTest;
@@ -78,6 +79,7 @@ public class StructureStandardSuite extends AbstractGremlinSuite {
      */
     private static final Class<?>[] allTests = new Class<?>[]{
             CommunityGeneratorTest.class,
+            DeflatedVertexTest.class,
             DetachedGraphTest.class,
             DetachedEdgeTest.class,
             DetachedVertexPropertyTest.class,

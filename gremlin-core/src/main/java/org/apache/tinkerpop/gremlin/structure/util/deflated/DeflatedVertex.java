@@ -25,6 +25,7 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,11 +34,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
 public class DeflatedVertex extends DeflatedElement<Vertex> implements Vertex {
+
+    protected Map<String, List<Edge>> outEdges = null;
+    protected Map<String, List<Edge>> inEdges = null;
+
 
     public DeflatedVertex(final Vertex vertex, final Map<String, Set<String>> components) {
         super(vertex);
@@ -46,7 +52,7 @@ public class DeflatedVertex extends DeflatedElement<Vertex> implements Vertex {
             final Iterator<VertexProperty<Object>> itty = propertiesSet.isEmpty() ?
                     vertex.properties() :
                     vertex.properties(propertiesSet.toArray(new String[propertiesSet.size()]));
-            if(itty.hasNext() && null == this.properties) this.properties = new HashMap<>();
+            if (itty.hasNext() && null == this.properties) this.properties = new HashMap<>();
             while (itty.hasNext()) {
                 final VertexProperty<Object> vertexProperty = itty.next();
                 if (!this.properties.containsKey(vertexProperty.key()))
@@ -54,6 +60,40 @@ public class DeflatedVertex extends DeflatedElement<Vertex> implements Vertex {
                 this.properties.get(vertexProperty.key()).add(new DeflatedVertexProperty<>(vertexProperty, components));
             }
         }
+        // TODO: BOTH_E
+        if (components.containsKey(OUT_E)) {
+            final Set<String> edgesSet = components.get(OUT_E);
+            final Iterator<Edge> itty = edgesSet.isEmpty() ?
+                    vertex.edges(Direction.OUT) :
+                    vertex.edges(Direction.OUT, edgesSet.toArray(new String[edgesSet.size()]));
+            if (itty.hasNext() && null == this.outEdges) this.outEdges = new HashMap<>();
+            while (itty.hasNext()) {
+                final DeflatedEdge deflatedEdge = new DeflatedEdge(itty.next(), components);
+                List<Edge> labeledEdges = this.outEdges.get(deflatedEdge.label());
+                if (null == labeledEdges) {
+                    labeledEdges = new ArrayList<>();
+                    this.outEdges.put(deflatedEdge.label(), labeledEdges);
+                }
+                labeledEdges.add(deflatedEdge);
+            }
+        }
+        if (components.containsKey(IN_E)) {
+            final Set<String> edgesSet = components.get(IN_E);
+            final Iterator<Edge> itty = edgesSet.isEmpty() ?
+                    vertex.edges(Direction.IN) :
+                    vertex.edges(Direction.IN, edgesSet.toArray(new String[edgesSet.size()]));
+            if (itty.hasNext() && null == this.inEdges) this.inEdges = new HashMap<>();
+            while (itty.hasNext()) {
+                final DeflatedEdge deflatedEdge = new DeflatedEdge(itty.next(), components);
+                List<Edge> labeledEdges = this.inEdges.get(deflatedEdge.label());
+                if (null == labeledEdges) {
+                    labeledEdges = new ArrayList<>();
+                    this.inEdges.put(deflatedEdge.label(), labeledEdges);
+                }
+                labeledEdges.add(deflatedEdge);
+            }
+        }
+
     }
 
     @Override
@@ -100,12 +140,34 @@ public class DeflatedVertex extends DeflatedElement<Vertex> implements Vertex {
 
     @Override
     public Iterator<Edge> edges(final Direction direction, final String... edgeLabels) {
-        return Collections.emptyIterator();
+        if (direction.equals(Direction.OUT)) {
+            if (null == this.outEdges || this.outEdges.isEmpty())
+                return Collections.emptyIterator();
+            else
+                return Stream.of(edgeLabels).map(label -> this.outEdges.get(label)).flatMap(List::stream).iterator();
+        } else if (direction.equals(Direction.IN)) {
+            if (null == this.outEdges || this.outEdges.isEmpty())
+                return Collections.emptyIterator();
+            else
+                return Stream.of(edgeLabels).map(label -> this.inEdges.get(label)).flatMap(List::stream).iterator();
+        } else {
+            if ((null == this.outEdges || this.outEdges.isEmpty()) && (null == this.inEdges || this.inEdges.isEmpty()))
+                return Collections.emptyIterator();
+            else
+                return Stream.concat(
+                        Stream.of(edgeLabels).map(label -> this.outEdges.get(label)).flatMap(List::stream),
+                        Stream.of(edgeLabels).map(label -> this.outEdges.get(label)).flatMap(List::stream)).iterator();
+        }
     }
 
     @Override
     public Iterator<Vertex> vertices(final Direction direction, final String... labels) {
-        return Collections.emptyIterator();
+        if (direction.equals(Direction.OUT))
+            return IteratorUtils.map(this.edges(direction, labels), Edge::inVertex);
+        else if (direction.equals(Direction.IN))
+            return IteratorUtils.map(this.edges(direction, labels), Edge::outVertex);
+        else
+            return IteratorUtils.concat(this.vertices(Direction.IN, labels), this.vertices(Direction.OUT, labels));
     }
 
     @Override
