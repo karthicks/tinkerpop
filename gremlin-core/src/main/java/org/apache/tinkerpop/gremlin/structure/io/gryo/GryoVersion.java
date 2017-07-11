@@ -20,6 +20,8 @@ package org.apache.tinkerpop.gremlin.structure.io.gryo;
 
 import org.apache.tinkerpop.gremlin.process.computer.GraphFilter;
 import org.apache.tinkerpop.gremlin.process.computer.MapReduce;
+import org.apache.tinkerpop.gremlin.process.computer.traversal.strategy.decoration.VertexProgramStrategy;
+import org.apache.tinkerpop.gremlin.process.computer.traversal.strategy.optimization.GraphFilterStrategy;
 import org.apache.tinkerpop.gremlin.process.computer.util.MapMemory;
 import org.apache.tinkerpop.gremlin.process.remote.traversal.DefaultRemoteTraverser;
 import org.apache.tinkerpop.gremlin.process.traversal.Bytecode;
@@ -37,12 +39,31 @@ import org.apache.tinkerpop.gremlin.process.traversal.step.map.FoldStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.GroupCountStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.GroupStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.GroupStepV3d0;
+import org.apache.tinkerpop.gremlin.process.traversal.step.map.MatchStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.MeanGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.OrderGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.TreeStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.ProfileStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.util.Tree;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.ConnectiveStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.HaltedTraverserStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.PartitionStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.SubgraphStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.finalization.MatchAlgorithmStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.AdjacentToIncidentStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.FilterRankingStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.IdentityRemovalStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.IncidentToAdjacentStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.InlineFilterStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.LazyBarrierStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.MatchPredicateStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.OrderLimitStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.PathProcessorStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.PathRetractionStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.optimization.RepeatUnrollStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.verification.LambdaRestrictionStrategy;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.verification.ReadOnlyStrategy;
 import org.apache.tinkerpop.gremlin.process.traversal.traverser.B_LP_O_P_S_SE_SL_Traverser;
 import org.apache.tinkerpop.gremlin.process.traversal.traverser.B_LP_O_S_SE_SL_Traverser;
 import org.apache.tinkerpop.gremlin.process.traversal.traverser.B_O_S_SE_SL_Traverser;
@@ -181,7 +202,7 @@ public enum GryoVersion {
             add(GryoTypeReg.of(BigDecimal.class, 35));
             add(GryoTypeReg.of(Calendar.class, 39));
             add(GryoTypeReg.of(Class.class, 41, new UtilSerializers.ClassSerializer()));
-            add(GryoTypeReg.of(Class[].class, 166, new UtilSerializers.ClassArraySerializer())); // ***LAST ID***
+            add(GryoTypeReg.of(Class[].class, 166, new UtilSerializers.ClassArraySerializer()));
             add(GryoTypeReg.of(Collection.class, 37));
             add(GryoTypeReg.of(Collections.EMPTY_LIST.getClass(), 51));
             add(GryoTypeReg.of(Collections.EMPTY_MAP.getClass(), 52));
@@ -301,6 +322,31 @@ public enum GryoVersion {
             add(GryoTypeReg.of(RangeGlobalStep.RangeBiOperator.class, 114));
             add(GryoTypeReg.of(OrderGlobalStep.OrderBiOperator.class, 118, new JavaSerializer()));
             add(GryoTypeReg.of(ProfileStep.ProfileBiOperator.class, 119));
+
+            add(GryoTypeReg.of(ConnectiveStrategy.class, 138));
+            add(GryoTypeReg.of(HaltedTraverserStrategy.class, 139));
+            add(GryoTypeReg.of(PartitionStrategy.class, 140, new JavaSerializer()));
+            add(GryoTypeReg.of(SubgraphStrategy.class, 141, new JavaSerializer()));
+            add(GryoTypeReg.of(VertexProgramStrategy.class, 142, new JavaSerializer()));
+            add(GryoTypeReg.of(MatchAlgorithmStrategy.class, 143));
+            add(GryoTypeReg.of(MatchStep.GreedyMatchAlgorithm.class, 144));
+            add(GryoTypeReg.of(AdjacentToIncidentStrategy.class, 145));
+            add(GryoTypeReg.of(FilterRankingStrategy.class, 146));
+            add(GryoTypeReg.of(IdentityRemovalStrategy.class, 147));
+            add(GryoTypeReg.of(IncidentToAdjacentStrategy.class, 148));
+            add(GryoTypeReg.of(InlineFilterStrategy.class, 149));
+            add(GryoTypeReg.of(LazyBarrierStrategy.class, 150));
+            add(GryoTypeReg.of(MatchPredicateStrategy.class, 151));
+            add(GryoTypeReg.of(OrderLimitStrategy.class, 152));
+            add(GryoTypeReg.of(PathProcessorStrategy.class, 153));
+            add(GryoTypeReg.of(PathRetractionStrategy.class, 154));
+            //add(GryoTypeReg.of(CountStrategy.class, 155));
+            add(GryoTypeReg.of(RepeatUnrollStrategy.class, 156));
+            add(GryoTypeReg.of(GraphFilterStrategy.class, 157));
+            add(GryoTypeReg.of(LambdaRestrictionStrategy.class, 158));
+            add(GryoTypeReg.of(ReadOnlyStrategy.class, 159));
+            add(GryoTypeReg.of(MatchStep.CountMatchAlgorithm.class, 160));
+            add(GryoTypeReg.of(MatchStep.GreedyMatchAlgorithm.class, 167)); // ***LAST ID***
         }};
     }
 

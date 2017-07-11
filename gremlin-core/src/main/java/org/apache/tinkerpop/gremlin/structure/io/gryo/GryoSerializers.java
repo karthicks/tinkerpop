@@ -136,13 +136,8 @@ public final class GryoSerializers {
     public final static class BytecodeSerializer implements SerializerShim<Bytecode> {
         @Override
         public <O extends OutputShim> void write(final KryoShim<?, O> kryo, final O output, final Bytecode bytecode) {
-            final List<Bytecode.Instruction> sourceInstructions = IteratorUtils.list(
-                    IteratorUtils.filter(bytecode.getSourceInstructions().iterator(),
-                            i -> !i.getOperator().equals(TraversalSource.Symbols.withStrategies) &&
-                                    !i.getOperator().equals(TraversalSource.Symbols.withComputer)));
-            writeInstructions(kryo, output, sourceInstructions);
-            final List<Bytecode.Instruction> stepInstructions = IteratorUtils.list(bytecode.getStepInstructions().iterator());
-            writeInstructions(kryo, output, stepInstructions);
+            writeInstructions(kryo, output, IteratorUtils.list(bytecode.getSourceInstructions().iterator()));
+            writeInstructions(kryo, output, IteratorUtils.list(bytecode.getStepInstructions().iterator()));
         }
 
         @Override
