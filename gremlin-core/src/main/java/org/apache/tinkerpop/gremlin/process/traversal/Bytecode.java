@@ -68,8 +68,23 @@ public final class Bytecode implements Cloneable, Serializable {
                         (Class) arguments[i];
             }
             this.sourceInstructions.add(new Instruction(sourceName, classes));
-        } else
+        } else if (sourceName.equals(TraversalSource.Symbols.withStrategies)) {
+            final List<Object> list = new ArrayList<>();
+            for (int i = 0; i < arguments.length; i++) {
+                // HACK: ignore TranslationStrategy from gremlin-test - not registered to gryo and not needed in
+                // general usage in any way
+                if (!arguments[i].getClass().getName().equals("org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.TranslationStrategy")) {
+                    list.add(arguments[i]);
+                }
+            }
+
+            if (!list.isEmpty()) {
+                final Object[] classes = list.toArray(new Object[list.size()]);
+                this.sourceInstructions.add(new Instruction(sourceName, flattenArguments(classes)));
+            }
+        } else {
             this.sourceInstructions.add(new Instruction(sourceName, flattenArguments(arguments)));
+        }
         Bindings.clear();
     }
 
