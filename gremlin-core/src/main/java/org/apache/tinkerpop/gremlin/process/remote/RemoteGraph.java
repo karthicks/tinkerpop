@@ -89,10 +89,6 @@ import java.util.Iterator;
         method = "*",
         reason = "RemoteGraph does not support EventStrategy at this time - some of its members are not serializable")
 @Graph.OptOut(
-        test = "org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.SubgraphStrategyProcessTest",
-        method = "*",
-        reason = "RemoteGraph does not support SubgraphStrategy at this time")
-@Graph.OptOut(
         test = "org.apache.tinkerpop.gremlin.process.computer.ranking.pagerank.PageRankVertexProgramTest",
         method = "*",
         reason = "RemoteGraph does not support direct Graph.compute() access")
@@ -116,6 +112,18 @@ import java.util.Iterator;
         test = "org.apache.tinkerpop.gremlin.process.traversal.TraversalInterruptionComputerTest",
         method = "*",
         reason = "The interruption model in the test can't guarantee interruption at the right time with RemoteGraph.")
+@Graph.OptOut(
+        test = "org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.PartitionStrategyProcessTest",
+        method = "shouldAppendPartitionToEdge",
+        reason = "Test uses detached side-effects which aren't currently supported with remoting - TINKERPOP-1679")
+@Graph.OptOut(
+        test = "org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.PartitionStrategyProcessTest",
+        method = "shouldThrowExceptionOnEInDifferentPartition",
+        reason = "Test uses detached side-effects which aren't currently supported with remoting - TINKERPOP-1679")
+@Graph.OptOut(
+        test = "org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.PartitionStrategyProcessTest",
+        method = "shouldWriteToMultiplePartitions",
+        reason = "Test uses detached side-effects which aren't currently supported with remoting - TINKERPOP-1679")
 @Deprecated
 public class RemoteGraph implements Graph {
 
