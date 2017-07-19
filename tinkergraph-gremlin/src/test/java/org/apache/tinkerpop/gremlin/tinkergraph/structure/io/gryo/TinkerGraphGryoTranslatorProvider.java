@@ -26,6 +26,8 @@ import org.apache.tinkerpop.gremlin.process.traversal.TraversalInterruptionCompu
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalInterruptionTest;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.ProgramTest;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.ElementIdStrategyProcessTest;
+import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.EventStrategyProcessTest;
 import org.apache.tinkerpop.gremlin.process.traversal.strategy.decoration.TranslationStrategy;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.tinkergraph.TinkerGraphProvider;
@@ -44,6 +46,8 @@ public class TinkerGraphGryoTranslatorProvider extends TinkerGraphProvider {
             "testProfileStrategyCallback",
             "testProfileStrategyCallbackSideEffect",
             //
+            ElementIdStrategyProcessTest.class.getCanonicalName(),
+            EventStrategyProcessTest.class.getCanonicalName(),
             ProgramTest.Traversals.class.getCanonicalName(),
             TraversalInterruptionTest.class.getCanonicalName(),
             TraversalInterruptionComputerTest.class.getCanonicalName(),
