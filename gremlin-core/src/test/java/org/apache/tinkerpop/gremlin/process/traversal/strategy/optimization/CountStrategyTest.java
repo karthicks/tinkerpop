@@ -95,6 +95,7 @@ public class CountStrategyTest {
                 {__.filter(__.bothE().count().is(gte(1))), __.filter(__.bothE())},
                 {__.filter(__.bothE().count().is(gt(1))), __.filter(__.bothE().limit(2).count().is(gt(1)))},
                 {__.filter(__.bothE().count().is(gte(2))), __.filter(__.bothE().limit(2).count().is(gte(2)))},
+                {__.and(__.out().count().is(0), __.in().count().is(0)), __.and(__.not(__.out()), __.not(__.in()))}
         });
     }
 
